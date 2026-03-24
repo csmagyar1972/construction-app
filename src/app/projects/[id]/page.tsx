@@ -10,7 +10,7 @@ import { EmptyState } from "@/components/app-ui/EmptyState";
 import { ProgressBar } from "@/components/app-ui/ProgressBar";
 import { useFilteredEntries } from "@/hooks/useFilteredEntries";
 import { useViewMode } from "@/hooks/useViewMode";
-import { ArrowLeft, MoreVertical, Plus } from "lucide-react";
+import { ArrowLeft, MoreVertical, Plus, FileText } from "lucide-react";
 
 export default function ProjectFeedPage({
   params,
@@ -68,6 +68,27 @@ export default function ProjectFeedPage({
             <ProgressBar progress={project.progress} />
           </div>
         )}
+
+        {/* e-Napló Export Button */}
+        <button
+          onClick={() => router.push(`/projects/${id}/enaplo`)}
+          className="mt-3 w-full flex items-center gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl hover:bg-amber-100 transition-colors group"
+        >
+          <div className="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center group-hover:bg-amber-200 transition-colors">
+            <FileText size={18} className="text-amber-600" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="text-sm font-semibold text-gray-900">
+              e-Napló Export
+            </p>
+            <p className="text-xs text-gray-500">
+              Napi bejegyzés előkészítése az elektronikus építési naplóhoz
+            </p>
+          </div>
+          <span className="text-xs font-medium text-amber-600 bg-amber-100 px-2 py-1 rounded-full">
+            ÚJ
+          </span>
+        </button>
       </div>
 
       {/* Filter Tabs */}
