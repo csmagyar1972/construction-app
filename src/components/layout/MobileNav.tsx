@@ -2,17 +2,16 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { FolderOpen, Search, Settings } from "lucide-react";
+import { FolderOpen, Search, Globe } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 
 export function MobileNav() {
   const pathname = usePathname();
-  const { t } = useLanguage();
+  const { t, locale, toggleLocale } = useLanguage();
 
   const navItems = [
     { href: "/projects", label: t.navProjects, icon: FolderOpen },
     { href: "/search", label: t.navSearch, icon: Search },
-    { href: "#", label: t.navSettings, icon: Settings },
   ];
 
   return (
@@ -34,6 +33,15 @@ export function MobileNav() {
             </Link>
           );
         })}
+        <button
+          onClick={toggleLocale}
+          className="flex flex-col items-center gap-1 py-2 px-4 min-w-[64px] text-gray-400 transition-colors"
+        >
+          <Globe size={22} strokeWidth={2} />
+          <span className="text-[10px] font-medium">
+            {locale === "hu" ? "EN" : "HU"}
+          </span>
+        </button>
       </div>
     </nav>
   );
