@@ -1,13 +1,16 @@
 "use client";
 
-import { projects } from "@/data/projects";
 import { ProjectCard } from "@/components/app-ui/ProjectCard";
 import { useViewMode } from "@/hooks/useViewMode";
+import { useLanguage } from "@/i18n/LanguageContext";
+import { getLocalizedData } from "@/data/localized";
 import { Plus, HardHat } from "lucide-react";
 
 export default function ProjectsPage() {
   const { isMobile, isPhonePreview } = useViewMode();
   const showMobileHeader = isMobile || isPhonePreview;
+  const { t, locale } = useLanguage();
+  const data = getLocalizedData(locale);
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -24,7 +27,7 @@ export default function ProjectsPage() {
                   BuildLog AI
                 </h1>
                 <p className="text-[10px] text-gray-400 uppercase tracking-wider">
-                  Építési napló
+                  {t.appSubtitle}
                 </p>
               </div>
             </div>
@@ -38,9 +41,9 @@ export default function ProjectsPage() {
       {/* Desktop Header */}
       {!showMobileHeader && (
         <div className="px-8 pt-8 pb-4">
-          <h1 className="text-2xl font-bold text-gray-900">Projektek</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.navProjects}</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Aktív építési projektek áttekintése
+            {t.activeProjects}
           </p>
         </div>
       )}
@@ -49,14 +52,14 @@ export default function ProjectsPage() {
       <div className={`${showMobileHeader ? "px-4" : "px-8"} pb-8`}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-            Aktív projektek ({projects.length})
+            {t.activeProjects} ({data.projects.length})
           </h2>
         </div>
 
         <div
           className={`grid gap-4 ${!showMobileHeader ? "md:grid-cols-2" : ""}`}
         >
-          {projects.map((project, index) => (
+          {data.projects.map((project, index) => (
             <ProjectCard key={project.id} project={project} index={index} />
           ))}
         </div>

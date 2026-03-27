@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { EntryStatus, STATUS_CONFIG } from "@/data/types";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 export function StatusBadge({
   status,
@@ -10,8 +11,15 @@ export function StatusBadge({
   status: EntryStatus;
   interactive?: boolean;
 }) {
+  const { t } = useLanguage();
   const [currentStatus, setCurrentStatus] = useState(status);
   const statuses: EntryStatus[] = ["open", "in_progress", "done"];
+
+  const statusLabelMap: Record<EntryStatus, string> = {
+    open: t.statusOpen,
+    in_progress: t.statusInProgress,
+    done: t.statusDone,
+  };
 
   if (interactive) {
     return (
@@ -33,7 +41,7 @@ export function StatusBadge({
                 transform: isActive ? "scale(1.05)" : "scale(1)",
               }}
             >
-              {config.label}
+              {statusLabelMap[s]}
             </button>
           );
         })}
@@ -51,7 +59,7 @@ export function StatusBadge({
         className="w-1.5 h-1.5 rounded-full mr-1.5"
         style={{ backgroundColor: config.color }}
       />
-      {config.label}
+      {statusLabelMap[currentStatus]}
     </span>
   );
 }

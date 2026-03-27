@@ -2,20 +2,22 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { searchResults, defaultSearchQuery } from "@/data/search-results";
 import { SearchResultCard } from "@/components/app-ui/SearchResultCard";
 import { EmptyState } from "@/components/app-ui/EmptyState";
 import { useViewMode } from "@/hooks/useViewMode";
+import { useLanguage } from "@/i18n/LanguageContext";
+import { getLocalizedData } from "@/data/localized";
 import { Search, ArrowLeft } from "lucide-react";
-
-const suggestedQueries = ["ragasztó", "hiba", "számla"];
 
 export default function SearchPage() {
   const router = useRouter();
   const { isMobile, isPhonePreview } = useViewMode();
   const showMobileLayout = isMobile || isPhonePreview;
-  const [query, setQuery] = useState(defaultSearchQuery);
-  const results = searchResults[query] || [];
+  const { t, locale } = useLanguage();
+  const data = getLocalizedData(locale);
+
+  const [query, setQuery] = useState(data.defaultSearchQuery);
+  const results = data.searchResults[query] || [];
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -35,7 +37,7 @@ export default function SearchPage() {
           <h1
             className={`font-bold text-gray-900 ${showMobileLayout ? "text-base" : "text-xl"}`}
           >
-            Keresés
+            {t.search}
           </h1>
         </div>
 
@@ -49,14 +51,14 @@ export default function SearchPage() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Keresés a bejegyzésekben..."
+            placeholder={t.searchPlaceholder}
             className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
 
         {/* Quick filters */}
         <div className="flex gap-2 mt-3">
-          {suggestedQueries.map((q) => (
+          {data.searchSuggestions.map((q) => (
             <button
               key={q}
               onClick={() => setQuery(q)}
@@ -78,11 +80,20 @@ export default function SearchPage() {
       >
         {results.length > 0 && (
           <p className="text-xs text-gray-400 mb-3">
-            {results.length} találat{" "}
+            {results.length} {t.resultsCount}{" "}
             {query && (
               <>
-                a(z) &ldquo;<span className="font-medium">{query}</span>
-                &rdquo; keresésre
+                {locale === "hu" ? (
+                  <>
+                    a(z) &ldquo;<span className="font-medium">{query}</span>
+                    &rdquo; keresésre
+                  </>
+                ) : (
+                  <>
+                    for &ldquo;<span className="font-medium">{query}</span>
+                    &rdquo;
+                  </>
+                )}
               </>
             )}
           </p>
@@ -100,7 +111,7 @@ export default function SearchPage() {
             ))}
           </div>
         ) : (
-          <EmptyState message="Nincs találat erre a keresésre" />
+          <EmptyState message={t.noSearchResults} />
         )}
       </div>
     </div>

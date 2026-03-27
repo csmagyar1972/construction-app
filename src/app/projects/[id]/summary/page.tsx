@@ -2,10 +2,11 @@
 
 import { use } from "react";
 import { useRouter } from "next/navigation";
-import { projects } from "@/data/projects";
 import { projectSummaries } from "@/data/summary";
 import { ProgressBar } from "@/components/app-ui/ProgressBar";
 import { useViewMode } from "@/hooks/useViewMode";
+import { useLanguage } from "@/i18n/LanguageContext";
+import { getLocalizedData } from "@/data/localized";
 import {
   ArrowLeft,
   FileText,
@@ -31,14 +32,16 @@ export default function SummaryPage({
   const router = useRouter();
   const { isMobile, isPhonePreview } = useViewMode();
   const showMobileLayout = isMobile || isPhonePreview;
+  const { t, locale } = useLanguage();
+  const data = getLocalizedData(locale);
 
-  const project = projects.find((p) => p.id === id);
+  const project = data.projects.find((p) => p.id === id);
   const summary = projectSummaries[id];
 
   if (!project || !summary) {
     return (
       <div className="p-8 text-center text-gray-400">
-        Nincs elérhető összefoglaló
+        {locale === "hu" ? "Nincs elérhető összefoglaló" : "No summary available"}
       </div>
     );
   }
@@ -58,7 +61,7 @@ export default function SummaryPage({
           </button>
           <div className="flex-1">
             <h1 className={`font-bold text-gray-900 ${showMobileLayout ? "text-base" : "text-xl"}`}>
-              Projekt Összefoglaló
+              {t.summaryTitle}
             </h1>
             <p className="text-xs text-gray-500">{project.name}</p>
           </div>
@@ -75,25 +78,25 @@ export default function SummaryPage({
           <KPICard
             icon={<FileText size={18} />}
             color="#3B82F6"
-            label="Összes bejegyzés"
+            label={t.summaryTotalEntries}
             value={String(summary.overview.totalEntries)}
           />
           <KPICard
             icon={<Calendar size={18} />}
             color="#8B5CF6"
-            label="Aktív napok"
-            value={`${summary.overview.totalDays} nap`}
+            label={t.summaryActiveDays}
+            value={`${summary.overview.totalDays} ${t.summaryDays}`}
           />
           <KPICard
             icon={<Users size={18} />}
             color="#10B981"
-            label="Összes munkanap"
-            value={`${summary.overview.totalCrewDays} fő×nap`}
+            label={t.summaryCrewDays}
+            value={`${summary.overview.totalCrewDays} ${locale === "hu" ? "fő×nap" : "man×days"}`}
           />
           <KPICard
             icon={<TrendingUp size={18} />}
             color="#F59E0B"
-            label="Készültség"
+            label={t.summaryProgress}
             value={`${summary.overview.progress}%`}
           />
         </motion.div>
@@ -105,7 +108,7 @@ export default function SummaryPage({
           transition={{ delay: 0.05 }}
           className="bg-white rounded-xl border border-gray-100 p-4"
         >
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">Projekt haladás</h3>
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">{t.summaryProjectProgress}</h3>
           <ProgressBar progress={summary.overview.progress} />
         </motion.div>
 
@@ -117,9 +120,11 @@ export default function SummaryPage({
           className="bg-white rounded-xl border border-gray-100 p-4"
         >
           <h3 className="text-sm font-semibold text-gray-900 mb-1">
-            Heti aktivitás
+            {t.summaryWeeklyActivity}
           </h3>
-          <p className="text-xs text-gray-400 mb-4">Bejegyzések és létszám naponta</p>
+          <p className="text-xs text-gray-400 mb-4">
+            {locale === "hu" ? "Bejegyzések és létszám naponta" : "Entries and crew per day"}
+          </p>
 
           <div className="flex items-end gap-2 h-32">
             {summary.timeline.map((day, i) => {
@@ -136,17 +141,19 @@ export default function SummaryPage({
                       animate={{ height: `${entryHeight}%` }}
                       transition={{ delay: 0.15 + i * 0.05, duration: 0.4 }}
                       className="flex-1 bg-blue-400 rounded-t-sm min-h-[2px]"
-                      title={`${day.entries} bejegyzés`}
+                      title={`${day.entries} ${t.entries}`}
                     />
                     <motion.div
                       initial={{ height: 0 }}
                       animate={{ height: `${crewHeight}%` }}
                       transition={{ delay: 0.2 + i * 0.05, duration: 0.4 }}
                       className="flex-1 bg-purple-300 rounded-t-sm min-h-[2px]"
-                      title={`${day.crew} fő`}
+                      title={`${day.crew} ${t.persons}`}
                     />
                   </div>
-                  <span className="text-[10px] text-gray-400">{day.label}</span>
+                  <span className="text-[10px] text-gray-400">
+                    {data.timelineLabels[i] || day.label}
+                  </span>
                 </div>
               );
             })}
@@ -154,11 +161,11 @@ export default function SummaryPage({
           <div className="flex items-center gap-4 mt-3 justify-center">
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-sm bg-blue-400" />
-              <span className="text-[10px] text-gray-500">Bejegyzések</span>
+              <span className="text-[10px] text-gray-500">{locale === "hu" ? "Bejegyzések" : "Entries"}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-sm bg-purple-300" />
-              <span className="text-[10px] text-gray-500">Létszám</span>
+              <span className="text-[10px] text-gray-500">{t.crew}</span>
             </div>
           </div>
         </motion.div>
@@ -171,12 +178,14 @@ export default function SummaryPage({
           className="bg-white rounded-xl border border-gray-100 p-4"
         >
           <h3 className="text-sm font-semibold text-gray-900 mb-4">
-            Bejegyzések típus szerint
+            {t.summaryEntriesByType}
           </h3>
           <div className="space-y-2.5">
             {summary.categoryBreakdown.map((cat, i) => (
               <div key={cat.category} className="flex items-center gap-3">
-                <span className="text-xs text-gray-500 w-16">{cat.label}</span>
+                <span className="text-xs text-gray-500 w-16">
+                  {data.categoryLabels[cat.category] || cat.label}
+                </span>
                 <div className="flex-1 h-6 bg-gray-50 rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
@@ -210,7 +219,7 @@ export default function SummaryPage({
         >
           <div className="flex items-center gap-2 mb-4">
             <AlertTriangle size={18} className="text-red-500" />
-            <h3 className="text-sm font-semibold text-gray-900">Hiba riport</h3>
+            <h3 className="text-sm font-semibold text-gray-900">{t.summaryDefectReport}</h3>
           </div>
 
           {/* Defect status cards */}
@@ -220,21 +229,21 @@ export default function SummaryPage({
                 <AlertCircle size={14} className="text-red-500" />
               </div>
               <p className="text-lg font-bold text-red-600">{summary.defects.open}</p>
-              <p className="text-[10px] text-red-500">Nyitott</p>
+              <p className="text-[10px] text-red-500">{t.summaryDefectsOpen}</p>
             </div>
             <div className="bg-amber-50 rounded-lg p-3 text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <Clock size={14} className="text-amber-500" />
               </div>
               <p className="text-lg font-bold text-amber-600">{summary.defects.inProgress}</p>
-              <p className="text-[10px] text-amber-500">Folyamatban</p>
+              <p className="text-[10px] text-amber-500">{t.summaryDefectsInProgress}</p>
             </div>
             <div className="bg-green-50 rounded-lg p-3 text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <CheckCircle2 size={14} className="text-green-500" />
               </div>
               <p className="text-lg font-bold text-green-600">{summary.defects.resolved}</p>
-              <p className="text-[10px] text-green-500">Megoldva</p>
+              <p className="text-[10px] text-green-500">{t.summaryDefectsResolved}</p>
             </div>
           </div>
 
@@ -242,19 +251,23 @@ export default function SummaryPage({
             <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-3 flex items-center gap-2">
               <AlertCircle size={14} className="text-red-600" />
               <span className="text-xs font-semibold text-red-700">
-                {summary.defects.urgent} sürgős hiba nyitva!
+                {summary.defects.urgent}{" "}
+                {locale === "hu" ? "sürgős hiba nyitva!" : "urgent defects open!"}
               </span>
             </div>
           )}
 
           <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
             <Clock size={12} />
-            Átlagos megoldási idő: <span className="font-semibold text-gray-700">{summary.defects.avgResolutionDays} nap</span>
+            {t.summaryDefectsAvgResolution}:{" "}
+            <span className="font-semibold text-gray-700">
+              {summary.defects.avgResolutionDays} {t.summaryDays}
+            </span>
           </div>
 
           {/* By location */}
           <h4 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
-            Hibák helyszín szerint
+            {t.summaryByLocation}
           </h4>
           <div className="space-y-1.5">
             {summary.defects.byLocation.map((loc, i) => (
@@ -287,12 +300,12 @@ export default function SummaryPage({
         >
           <div className="flex items-center gap-2 mb-4">
             <Receipt size={18} className="text-gray-600" />
-            <h3 className="text-sm font-semibold text-gray-900">Költség összesítő</h3>
+            <h3 className="text-sm font-semibold text-gray-900">{t.summaryCostSummary}</h3>
           </div>
 
           {/* Total */}
           <div className="bg-gray-50 rounded-lg p-4 mb-4 text-center">
-            <p className="text-xs text-gray-400 uppercase mb-1">Számlázott összeg</p>
+            <p className="text-xs text-gray-400 uppercase mb-1">{t.summaryTotalInvoiced}</p>
             <p className="text-2xl font-bold text-gray-900">{summary.materials.totalInvoiced}</p>
           </div>
 
@@ -300,7 +313,7 @@ export default function SummaryPage({
           {summary.materials.suppliers.length > 0 && (
             <>
               <h4 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
-                Beszállítók szerint
+                {t.summarySuppliers}
               </h4>
               <div className="space-y-2 mb-4">
                 {summary.materials.suppliers.map((s, i) => (
@@ -311,7 +324,7 @@ export default function SummaryPage({
                     <div>
                       <span className="text-gray-700">{s.name}</span>
                       <span className="text-xs text-gray-400 ml-2">
-                        ({s.invoiceCount} számla)
+                        ({s.invoiceCount} {locale === "hu" ? "számla" : "invoices"})
                       </span>
                     </div>
                     <span className="font-semibold text-gray-900">{s.amount}</span>
@@ -332,7 +345,7 @@ export default function SummaryPage({
           <div className="flex items-center gap-2 mb-4">
             <Hammer size={18} className="text-amber-500" />
             <h3 className="text-sm font-semibold text-gray-900">
-              Leggyakoribb anyagok
+              {t.summaryTopMaterials}
             </h3>
           </div>
           <div className="space-y-2">
@@ -364,24 +377,30 @@ export default function SummaryPage({
         >
           <div className="flex items-center gap-2 mb-4">
             <Users size={18} className="text-purple-500" />
-            <h3 className="text-sm font-semibold text-gray-900">Munkaerő áttekintés</h3>
+            <h3 className="text-sm font-semibold text-gray-900">{t.summaryCrewOverview}</h3>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="text-center">
               <p className="text-lg font-bold text-gray-900">{summary.dailyReports.total}</p>
-              <p className="text-[10px] text-gray-500">Napi riport</p>
+              <p className="text-[10px] text-gray-500">
+                {locale === "hu" ? "Napi riport" : "Daily reports"}
+              </p>
             </div>
             <div className="text-center">
               <p className="text-lg font-bold text-gray-900">
                 {summary.dailyReports.avgCrew}
               </p>
-              <p className="text-[10px] text-gray-500">Átlag létszám/nap</p>
+              <p className="text-[10px] text-gray-500">
+                {locale === "hu" ? "Átlag létszám/nap" : "Avg. crew/day"}
+              </p>
             </div>
             <div className="text-center">
               <p className="text-lg font-bold text-gray-900">
                 {summary.overview.totalCrewDays}
               </p>
-              <p className="text-[10px] text-gray-500">Össz munkanap</p>
+              <p className="text-[10px] text-gray-500">
+                {locale === "hu" ? "Össz munkanap" : "Total crew days"}
+              </p>
             </div>
           </div>
         </motion.div>
@@ -395,11 +414,20 @@ export default function SummaryPage({
         >
           <div className="flex items-center gap-2 mb-3">
             <Package size={18} className="text-blue-500" />
-            <h3 className="text-sm font-semibold text-gray-900">Szállítások</h3>
+            <h3 className="text-sm font-semibold text-gray-900">{t.summaryDeliveries}</h3>
           </div>
           <p className="text-sm text-gray-600 mb-2">
-            Összesen <span className="font-semibold">{summary.deliveries.total} szállítólevél</span> rögzítve,{" "}
-            <span className="font-semibold">{summary.deliveries.suppliers.length} beszállítótól</span>
+            {locale === "hu" ? (
+              <>
+                Összesen <span className="font-semibold">{summary.deliveries.total} szállítólevél</span> rögzítve,{" "}
+                <span className="font-semibold">{summary.deliveries.suppliers.length} beszállítótól</span>
+              </>
+            ) : (
+              <>
+                Total <span className="font-semibold">{summary.deliveries.total} delivery notes</span> recorded from{" "}
+                <span className="font-semibold">{summary.deliveries.suppliers.length} suppliers</span>
+              </>
+            )}
           </p>
           <div className="flex flex-wrap gap-1.5">
             {summary.deliveries.suppliers.map((s, i) => (

@@ -2,12 +2,15 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { projects } from "@/data/projects";
+import { getLocalizedData } from "@/data/localized";
+import { useLanguage } from "@/i18n/LanguageContext";
 import { ProjectCard } from "@/components/app-ui/ProjectCard";
-import { Search, HardHat } from "lucide-react";
+import { Search, HardHat, Globe } from "lucide-react";
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { t, locale, toggleLocale } = useLanguage();
+  const data = getLocalizedData(locale);
 
   return (
     <aside className="w-72 bg-white border-r border-gray-200 h-screen flex flex-col overflow-hidden">
@@ -20,7 +23,7 @@ export function Sidebar() {
           <div>
             <h1 className="text-base font-bold text-gray-900">BuildLog AI</h1>
             <p className="text-[10px] text-gray-400 uppercase tracking-wider">
-              Építési napló
+              {t.appSubtitle}
             </p>
           </div>
         </div>
@@ -37,7 +40,7 @@ export function Sidebar() {
           }`}
         >
           <Search size={18} />
-          Keresés
+          {t.navSearch}
         </Link>
       </div>
 
@@ -45,14 +48,25 @@ export function Sidebar() {
       <div className="flex-1 overflow-y-auto">
         <div className="px-4 py-2">
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-            Aktív projektek
+            {t.activeProjects}
           </h2>
         </div>
         <div className="px-2">
-          {projects.map((project) => (
+          {data.projects.map((project) => (
             <ProjectCard key={project.id} project={project} compact />
           ))}
         </div>
+      </div>
+
+      {/* Language Toggle */}
+      <div className="px-3 pb-1">
+        <button
+          onClick={toggleLocale}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-500 hover:bg-gray-50 transition-colors"
+        >
+          <Globe size={18} />
+          {locale === "hu" ? "English" : "Magyar"}
+        </button>
       </div>
 
       {/* User */}

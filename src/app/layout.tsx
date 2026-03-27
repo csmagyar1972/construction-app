@@ -8,9 +8,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "BuildLog AI — Építési Napló",
+  title: "BuildLog AI",
   description:
-    "AI-alapú építési dokumentáció és helyszíni adatkezelő rendszer",
+    "AI-powered construction documentation and field data management system",
 };
 
 export default function RootLayout({

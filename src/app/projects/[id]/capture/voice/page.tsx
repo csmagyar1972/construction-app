@@ -4,6 +4,7 @@ import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { X, Mic, Square, Play } from "lucide-react";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 export default function VoiceCapturePage({
   params,
@@ -16,6 +17,7 @@ export default function VoiceCapturePage({
     "recording"
   );
   const [seconds, setSeconds] = useState(0);
+  const { t, locale } = useLanguage();
 
   useEffect(() => {
     if (phase !== "recording") return;
@@ -61,7 +63,7 @@ export default function VoiceCapturePage({
             className="w-2.5 h-2.5 rounded-full bg-red-500"
           />
           <span className="text-base font-medium text-gray-900">
-            Felvétel...
+            {t.recording}
           </span>
           <span className="text-sm text-gray-400">
             0:{String(seconds).padStart(2, "0")}
@@ -111,7 +113,7 @@ export default function VoiceCapturePage({
 
       <div className="w-full">
         <p className="text-sm font-medium text-gray-500 mb-3">
-          Ezt rögzítettem:
+          {t.iRecordedThis}
         </p>
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
@@ -120,13 +122,15 @@ export default function VoiceCapturePage({
           className="bg-white rounded-2xl border border-gray-200 p-5 mb-4"
         >
           <p className="text-base text-gray-900 leading-relaxed">
-            &ldquo;Ma felhasználtunk 10 zsák ragasztót a 2. emeleten&rdquo;
+            {locale === "hu"
+              ? "\u201CMa felhasználtunk 10 zsák ragasztót a 2. emeleten\u201D"
+              : "\u201CToday we used 10 bags of adhesive on the 2nd floor\u201D"}
           </p>
         </motion.div>
 
         <button className="flex items-center gap-2 text-sm text-purple-600 mb-8">
           <Play size={16} />
-          Visszahallgatás
+          {t.playback}
         </button>
 
         <div className="flex gap-3">
@@ -137,7 +141,7 @@ export default function VoiceCapturePage({
             }}
             className="flex-1 py-3 bg-gray-100 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-200 transition-colors"
           >
-            Újra
+            {t.retry}
           </button>
           <button
             onClick={() =>
@@ -145,7 +149,7 @@ export default function VoiceCapturePage({
             }
             className="flex-1 py-3 bg-blue-600 rounded-xl text-sm font-medium text-white hover:bg-blue-700 transition-colors"
           >
-            Tovább
+            {t.continue_}
           </button>
         </div>
       </div>

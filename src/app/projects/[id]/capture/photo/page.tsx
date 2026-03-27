@@ -3,7 +3,8 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { X, Camera, Mic } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 export default function PhotoCapturePage({
   params,
@@ -14,6 +15,7 @@ export default function PhotoCapturePage({
   const router = useRouter();
   const [phase, setPhase] = useState<"camera" | "preview">("camera");
   const [description, setDescription] = useState("");
+  const { t, locale } = useLanguage();
 
   if (phase === "camera") {
     return (
@@ -43,7 +45,9 @@ export default function PhotoCapturePage({
               <div className="w-16 h-16 border-2 border-white/30 rounded-lg mx-auto mb-3 flex items-center justify-center">
                 <Camera size={24} className="text-white/40" />
               </div>
-              <p className="text-white/40 text-sm">Kamera nézet</p>
+              <p className="text-white/40 text-sm">
+                {locale === "hu" ? "Kamera nézet" : "Camera view"}
+              </p>
             </div>
           </div>
 
@@ -89,7 +93,7 @@ export default function PhotoCapturePage({
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="bg-white/80 backdrop-blur-sm rounded-xl px-4 py-2">
             <p className="text-sm text-gray-600 font-medium">
-              Fotó elkészítve
+              {locale === "hu" ? "Fotó elkészítve" : "Photo taken"}
             </p>
           </div>
         </div>
@@ -99,22 +103,22 @@ export default function PhotoCapturePage({
       <div className="p-4 space-y-4">
         <div>
           <label className="text-sm font-medium text-gray-700 block mb-2">
-            Adj hozzá leírást:
+            {t.addDescription}
           </label>
           <input
             type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Írj valamit..."
+            placeholder={t.writeSomething}
             className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
 
-        <div className="text-center text-sm text-gray-400">vagy</div>
+        <div className="text-center text-sm text-gray-400">{t.orText}</div>
 
         <button className="w-full py-3 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center gap-2 text-sm text-gray-500 hover:border-purple-300 hover:text-purple-600 transition-colors">
           <Mic size={18} />
-          Tartsd nyomva és beszélj
+          {t.holdAndSpeak}
         </button>
 
         <div className="flex gap-3 pt-4">
@@ -124,7 +128,7 @@ export default function PhotoCapturePage({
             }
             className="flex-1 py-3 bg-gray-100 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-200 transition-colors"
           >
-            Kihagyás
+            {t.skip}
           </button>
           <button
             onClick={() =>
@@ -132,7 +136,7 @@ export default function PhotoCapturePage({
             }
             className="flex-1 py-3 bg-blue-600 rounded-xl text-sm font-medium text-white hover:bg-blue-700 transition-colors"
           >
-            Tovább
+            {t.continue_}
           </button>
         </div>
       </div>

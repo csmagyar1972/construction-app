@@ -2,36 +2,10 @@
 
 import { use } from "react";
 import { useRouter } from "next/navigation";
-import { projects } from "@/data/projects";
 import { Camera, Mic, Type, X } from "lucide-react";
 import { motion } from "framer-motion";
-
-const captureOptions = [
-  {
-    id: "photo",
-    icon: Camera,
-    title: "Fotó készítése",
-    description: "Hiba, szállítólevél, számla, bármi amit a helyszínen látsz",
-    color: "#3B82F6",
-    bgColor: "#EFF6FF",
-  },
-  {
-    id: "voice",
-    icon: Mic,
-    title: "Hangfelvétel",
-    description: "Mondd el mi történt — az AI feldolgozza",
-    color: "#8B5CF6",
-    bgColor: "#F5F3FF",
-  },
-  {
-    id: "text",
-    icon: Type,
-    title: "Szöveges jegyzet",
-    description: "Gyors megjegyzés vagy helyszíni megfigyelés",
-    color: "#10B981",
-    bgColor: "#ECFDF5",
-  },
-];
+import { useLanguage } from "@/i18n/LanguageContext";
+import { getLocalizedData } from "@/data/localized";
 
 export default function CapturePage({
   params,
@@ -40,7 +14,36 @@ export default function CapturePage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-  const project = projects.find((p) => p.id === id);
+  const { t, locale } = useLanguage();
+  const data = getLocalizedData(locale);
+  const project = data.projects.find((p) => p.id === id);
+
+  const captureOptions = [
+    {
+      id: "photo",
+      icon: Camera,
+      title: t.takePhoto,
+      description: t.takePhotoDesc,
+      color: "#3B82F6",
+      bgColor: "#EFF6FF",
+    },
+    {
+      id: "voice",
+      icon: Mic,
+      title: t.voiceRecording,
+      description: t.voiceRecordingDesc,
+      color: "#8B5CF6",
+      bgColor: "#F5F3FF",
+    },
+    {
+      id: "text",
+      icon: Type,
+      title: t.textNote,
+      description: t.textNoteDesc,
+      color: "#10B981",
+      bgColor: "#ECFDF5",
+    },
+  ];
 
   return (
     <motion.div
@@ -59,7 +62,7 @@ export default function CapturePage({
         </button>
         <div className="flex-1 text-center">
           <h1 className="text-base font-semibold text-gray-900">
-            Új bejegyzés
+            {t.newEntry}
           </h1>
           <p className="text-xs text-gray-400">{project?.name}</p>
         </div>

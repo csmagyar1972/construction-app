@@ -2,15 +2,9 @@
 
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 export type DateRange = "day" | "week" | "month" | "all";
-
-const rangeLabels: Record<DateRange, string> = {
-  day: "Nap",
-  week: "Hét",
-  month: "Hónap",
-  all: "Mind",
-};
 
 export function DateNavigator({
   currentDate,
@@ -25,6 +19,15 @@ export function DateNavigator({
   onRangeChange: (range: DateRange) => void;
   dateLabel: string;
 }) {
+  const { t } = useLanguage();
+
+  const rangeLabels: Record<DateRange, string> = {
+    day: t.dateDay,
+    week: t.dateWeek,
+    month: t.dateMonth,
+    all: t.dateAll,
+  };
+
   return (
     <div className="space-y-2">
       {/* Range toggles */}

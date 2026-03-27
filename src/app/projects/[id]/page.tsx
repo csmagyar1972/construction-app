@@ -2,8 +2,6 @@
 
 import { use, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { projects } from "@/data/projects";
-import { entries } from "@/data/entries";
 import { EntryCard } from "@/components/app-ui/EntryCard";
 import { FilterTabs } from "@/components/app-ui/FilterTabs";
 import { EmptyState } from "@/components/app-ui/EmptyState";
@@ -14,6 +12,8 @@ import {
 } from "@/components/app-ui/DateNavigator";
 import { useFilteredEntries } from "@/hooks/useFilteredEntries";
 import { useViewMode } from "@/hooks/useViewMode";
+import { useLanguage } from "@/i18n/LanguageContext";
+import { getLocalizedData } from "@/data/localized";
 import { EntryItem } from "@/data/types";
 import {
   ArrowLeft,
@@ -34,7 +34,7 @@ const DATES = [
   "2026-03-18",
 ];
 
-const DATE_LABELS: Record<string, string> = {
+const DATE_LABELS_HU: Record<string, string> = {
   "2026-03-24": "Ma — márc. 24. (kedd)",
   "2026-03-23": "Tegnap — márc. 23. (hétfő)",
   "2026-03-22": "Márc. 22. (vasárnap)",
@@ -44,7 +44,17 @@ const DATE_LABELS: Record<string, string> = {
   "2026-03-18": "Márc. 18. (szerda)",
 };
 
-const DAY_GROUP_LABELS: Record<string, string> = {
+const DATE_LABELS_EN: Record<string, string> = {
+  "2026-03-24": "Today — Mar 24 (Tue)",
+  "2026-03-23": "Yesterday — Mar 23 (Mon)",
+  "2026-03-22": "Mar 22 (Sun)",
+  "2026-03-21": "Mar 21 (Sat)",
+  "2026-03-20": "Mar 20 (Fri)",
+  "2026-03-19": "Mar 19 (Thu)",
+  "2026-03-18": "Mar 18 (Wed)",
+};
+
+const DAY_GROUP_LABELS_HU: Record<string, string> = {
   "2026-03-24": "Ma",
   "2026-03-23": "Tegnap",
   "2026-03-22": "Márc. 22.",
@@ -54,16 +64,30 @@ const DAY_GROUP_LABELS: Record<string, string> = {
   "2026-03-18": "Márc. 18.",
 };
 
-const WEEK_LABEL = "Márc. 18–24. hét";
-const MONTH_LABEL = "2026. március";
+const DAY_GROUP_LABELS_EN: Record<string, string> = {
+  "2026-03-24": "Today",
+  "2026-03-23": "Yesterday",
+  "2026-03-22": "Mar 22",
+  "2026-03-21": "Mar 21",
+  "2026-03-20": "Mar 20",
+  "2026-03-19": "Mar 19",
+  "2026-03-18": "Mar 18",
+};
+
+const WEEK_LABEL_HU = "Márc. 18–24. hét";
+const WEEK_LABEL_EN = "Mar 18–24 week";
+const MONTH_LABEL_HU = "2026. március";
+const MONTH_LABEL_EN = "March 2026";
 
 function getDateRangeLabel(
   dateRange: DateRange,
-  dateIndex: number
+  dateIndex: number,
+  locale: string
 ): string {
-  if (dateRange === "day") return DATE_LABELS[DATES[dateIndex]] || "";
-  if (dateRange === "week") return WEEK_LABEL;
-  if (dateRange === "month") return MONTH_LABEL;
+  const dateLabels = locale === "en" ? DATE_LABELS_EN : DATE_LABELS_HU;
+  if (dateRange === "day") return dateLabels[DATES[dateIndex]] || "";
+  if (dateRange === "week") return locale === "en" ? WEEK_LABEL_EN : WEEK_LABEL_HU;
+  if (dateRange === "month") return locale === "en" ? MONTH_LABEL_EN : MONTH_LABEL_HU;
   return "";
 }
 
@@ -81,7 +105,11 @@ function filterByDateRange(
   return items;
 }
 
-function groupByDay(items: EntryItem[]): { date: string; label: string; entries: EntryItem[] }[] {
+function groupByDay(
+  items: EntryItem[],
+  locale: string
+): { date: string; label: string; entries: EntryItem[] }[] {
+  const dayGroupLabels = locale === "en" ? DAY_GROUP_LABELS_EN : DAY_GROUP_LABELS_HU;
   const groups: Record<string, EntryItem[]> = {};
   for (const item of items) {
     if (!groups[item.date]) groups[item.date] = [];
@@ -91,7 +119,7 @@ function groupByDay(items: EntryItem[]): { date: string; label: string; entries:
     .sort(([a], [b]) => b.localeCompare(a))
     .map(([date, entries]) => ({
       date,
-      label: DAY_GROUP_LABELS[date] || date,
+      label: dayGroupLabels[date] || date,
       entries,
     }));
 }
@@ -105,9 +133,11 @@ export default function ProjectFeedPage({
   const router = useRouter();
   const { isMobile, isPhonePreview } = useViewMode();
   const showMobileLayout = isMobile || isPhonePreview;
+  const { t, locale } = useLanguage();
+  const data = getLocalizedData(locale);
 
-  const project = projects.find((p) => p.id === id);
-  const projectEntries = entries[id] || [];
+  const project = data.projects.find((p) => p.id === id);
+  const projectEntries = data.entries[id] || [];
   const [activeFilter, setActiveFilter] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange>("all");
   const [dateIndex, setDateIndex] = useState(0);
@@ -119,7 +149,7 @@ export default function ProjectFeedPage({
     [categoryFiltered, dateRange, dateIndex]
   );
 
-  const grouped = useMemo(() => groupByDay(dateFiltered), [dateFiltered]);
+  const grouped = useMemo(() => groupByDay(dateFiltered, locale), [dateFiltered, locale]);
 
   const handleDateChange = (direction: "prev" | "next") => {
     setDateIndex((i) => {
@@ -131,7 +161,7 @@ export default function ProjectFeedPage({
   if (!project) {
     return (
       <div className="p-8 text-center text-gray-400">
-        Projekt nem található
+        {locale === "hu" ? "Projekt nem található" : "Project not found"}
       </div>
     );
   }
@@ -178,10 +208,10 @@ export default function ProjectFeedPage({
           >
             <FileText size={16} className="text-amber-600" />
             <div className="flex-1 text-left">
-              <p className="text-xs font-semibold text-gray-900">e-Napló Export</p>
+              <p className="text-xs font-semibold text-gray-900">{t.eNaploExport}</p>
             </div>
             <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded-full">
-              ÚJ
+              {locale === "hu" ? "ÚJ" : "NEW"}
             </span>
           </button>
           <button
@@ -190,7 +220,7 @@ export default function ProjectFeedPage({
           >
             <BarChart3 size={16} className="text-purple-600" />
             <div className="flex-1 text-left">
-              <p className="text-xs font-semibold text-gray-900">Összefoglaló</p>
+              <p className="text-xs font-semibold text-gray-900">{t.summary}</p>
             </div>
           </button>
         </div>
@@ -205,7 +235,7 @@ export default function ProjectFeedPage({
               setDateRange(range);
               setDateIndex(0);
             }}
-            dateLabel={getDateRangeLabel(dateRange, dateIndex)}
+            dateLabel={getDateRangeLabel(dateRange, dateIndex, locale)}
           />
         </div>
       </div>
@@ -227,8 +257,10 @@ export default function ProjectFeedPage({
           <EmptyState
             message={
               dateRange === "day"
-                ? "Nincs bejegyzés ezen a napon"
-                : "Nincs bejegyzés ebben az időszakban"
+                ? t.noEntriesThisDay
+                : locale === "hu"
+                  ? "Nincs bejegyzés ebben az időszakban"
+                  : "No entries in this period"
             }
           />
         ) : dateRange === "day" ? (
@@ -251,7 +283,7 @@ export default function ProjectFeedPage({
                   </h3>
                   <div className="flex-1 h-px bg-gray-100" />
                   <span className="text-xs text-gray-400">
-                    {group.entries.length} bejegyzés
+                    {group.entries.length} {t.entries}
                   </span>
                 </div>
                 <div
@@ -276,7 +308,7 @@ export default function ProjectFeedPage({
       >
         <Plus size={22} />
         {!showMobileLayout && (
-          <span className="font-medium text-sm">Rögzítés</span>
+          <span className="font-medium text-sm">{t.capture}</span>
         )}
       </button>
     </div>

@@ -3,6 +3,7 @@
 import { EntryItem, CATEGORY_CONFIG } from "@/data/types";
 import { CategoryBadge } from "./CategoryBadge";
 import { StatusBadge } from "./StatusBadge";
+import { useLanguage } from "@/i18n/LanguageContext";
 import { MapPin, Camera, Mic, AlertCircle, Image } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -14,6 +15,7 @@ export function EntryCard({
   entry: EntryItem;
   index?: number;
 }) {
+  const { t, locale } = useLanguage();
   const config = CATEGORY_CONFIG[entry.category];
 
   return (
@@ -38,7 +40,7 @@ export function EntryCard({
                 {entry.isUrgent && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
                     <AlertCircle size={12} />
-                    Sürgős!
+                    {t.urgent}
                   </span>
                 )}
                 {entry.status && <StatusBadge status={entry.status} />}
@@ -63,7 +65,8 @@ export function EntryCard({
                   ))}
                   {entry.items.length > 3 && (
                     <p className="text-xs text-gray-400">
-                      + {entry.items.length - 3} további tétel
+                      + {entry.items.length - 3}{" "}
+                      {locale === "hu" ? "további tétel" : "more items"}
                     </p>
                   )}
                 </div>
@@ -73,7 +76,7 @@ export function EntryCard({
                 <div className="mb-2 space-y-0.5">
                   {entry.reportData.crew && (
                     <p className="text-xs text-gray-500">
-                      Létszám: {entry.reportData.crew}
+                      {t.crew}: {entry.reportData.crew}
                     </p>
                   )}
                   {entry.reportData.completed?.slice(0, 2).map((item, i) => (

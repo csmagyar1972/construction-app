@@ -3,7 +3,7 @@
 import { use, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Loader2,
   Check,
@@ -15,12 +15,17 @@ import {
   AlertTriangle,
   Hammer,
 } from "lucide-react";
+import { useLanguage } from "@/i18n/LanguageContext";
+import { getLocalizedData } from "@/data/localized";
 
 function ResultContent({ id }: { id: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const type = searchParams.get("type") || "photo";
   const [phase, setPhase] = useState<"processing" | "result">("processing");
+  const { t, locale } = useLanguage();
+  const data = getLocalizedData(locale);
+  const project = data.projects.find((p) => p.id === id);
 
   useEffect(() => {
     const timer = setTimeout(() => setPhase("result"), 1800);
@@ -42,15 +47,9 @@ function ResultContent({ id }: { id: string }) {
           <Loader2 size={48} className="text-blue-600" />
         </motion.div>
         <h2 className="text-lg font-semibold text-gray-900 mb-2">
-          Feldolgozás
-          <motion.span
-            animate={{ opacity: [0, 1, 0] }}
-            transition={{ repeat: Infinity, duration: 1.5 }}
-          >
-            ...
-          </motion.span>
+          {t.processing}
         </h2>
-        <p className="text-sm text-gray-400">Az AI elemzi a bejegyzést</p>
+        <p className="text-sm text-gray-400">{t.aiAnalyzing}</p>
       </motion.div>
     );
   }
@@ -79,7 +78,7 @@ function ResultContent({ id }: { id: string }) {
         >
           <Check size={28} className="text-green-600" />
         </motion.div>
-        <h2 className="text-lg font-semibold text-gray-900">Feldolgozva!</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t.processed}</h2>
       </div>
 
       {/* Result Card */}
@@ -109,53 +108,57 @@ function ResultContent({ id }: { id: string }) {
             className="text-sm font-bold uppercase tracking-wide"
             style={{ color: isDefect ? "#EF4444" : "#F59E0B" }}
           >
-            {isDefect ? "HIBA" : "ANYAGFELHASZNÁLÁS"}
+            {isDefect ? t.catDefect : t.catMaterial}
           </span>
         </div>
 
         {/* Fields */}
         <div className="px-5 py-4 space-y-3">
-          <ResultField label="Projekt" value="Hévíz Le Primore Hotel" />
+          <ResultField label={t.project} value={project?.name || "Hévíz Le Primore Hotel"} />
           {isDefect ? (
             <>
-              <ResultField label="Típus" value="Festési hiba" />
-              <ResultField label="Leírás" value="Repedés a mennyezeten" />
+              <ResultField label={t.type} value={locale === "hu" ? "Festési hiba" : "Paint defect"} />
+              <ResultField label={t.description} value={locale === "hu" ? "Repedés a mennyezeten" : "Ceiling crack"} />
               <ResultField
-                label="Helyszín"
-                value="4. emelet / 234-es szoba"
+                label={t.location}
+                value={locale === "hu" ? "4. emelet / 234-es szoba" : "4th floor / Room 234"}
                 icon={<MapPin size={14} />}
               />
-              <ResultField label="Teendő" value="Javítás szükséges" />
+              <ResultField label={t.todo} value={locale === "hu" ? "Javítás szükséges" : "Repair needed"} />
               <ResultField
-                label="Státusz"
-                value="Nyitott"
+                label={t.status}
+                value={t.statusOpen}
                 valueColor="#EF4444"
               />
             </>
           ) : (
             <>
-              <ResultField label="Termék" value="Baumit ProContact ragasztó" />
-              <ResultField label="Mennyiség" value="10 zsák" />
+              <ResultField label={locale === "hu" ? "Termék" : "Product"} value="Baumit ProContact" />
+              <ResultField label={locale === "hu" ? "Mennyiség" : "Quantity"} value={locale === "hu" ? "10 zsák" : "10 bags"} />
               <ResultField
-                label="Helyszín"
-                value="2. emelet"
+                label={t.location}
+                value={locale === "hu" ? "2. emelet" : "2nd floor"}
                 icon={<MapPin size={14} />}
               />
             </>
           )}
           <ResultField
-            label="Dátum"
+            label={t.date}
             value="2026.03.24"
             icon={<Calendar size={14} />}
           />
           <ResultField
-            label="Fotó"
-            value={isDefect ? "1 csatolva" : "—"}
+            label={t.photo}
+            value={isDefect ? `1 ${t.attached}` : "—"}
             icon={<Camera size={14} />}
           />
           <ResultField
-            label="Forrás"
-            value={isDefect ? "Fotó + Hang" : "Hangfelvétel"}
+            label={t.source}
+            value={
+              isDefect
+                ? locale === "hu" ? "Fotó + Hang" : "Photo + Voice"
+                : locale === "hu" ? "Hangfelvétel" : "Voice recording"
+            }
             icon={isDefect ? <Camera size={14} /> : <Mic size={14} />}
           />
         </div>
@@ -164,7 +167,7 @@ function ResultContent({ id }: { id: string }) {
       {/* Edit link */}
       <button className="flex items-center gap-2 text-sm text-gray-400 mt-3 mx-auto hover:text-gray-600 transition-colors">
         <Pencil size={14} />
-        Valami nem stimmel? Szerkesztés
+        {t.somethingWrong} {t.edit}
       </button>
 
       {/* Save button */}
@@ -176,7 +179,7 @@ function ResultContent({ id }: { id: string }) {
         className="mt-6 w-full py-4 bg-blue-600 text-white rounded-xl text-base font-semibold hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
       >
         <Check size={20} />
-        Mentés
+        {t.save}
       </motion.button>
     </motion.div>
   );

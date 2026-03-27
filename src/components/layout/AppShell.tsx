@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { ViewModeContext, ViewMode } from "@/hooks/useViewMode";
+import { LanguageProvider } from "@/i18n/LanguageContext";
 import { Sidebar } from "./Sidebar";
 import { MobileNav } from "./MobileNav";
 import { PhoneFrame } from "./PhoneFrame";
@@ -35,38 +36,40 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const isPhonePreview = viewMode === "phone-preview";
 
   return (
-    <ViewModeContext.Provider
-      value={{ viewMode, setViewMode, isPhonePreview, isMobile }}
-    >
-      <ViewToggle />
+    <LanguageProvider>
+      <ViewModeContext.Provider
+        value={{ viewMode, setViewMode, isPhonePreview, isMobile }}
+      >
+        <ViewToggle />
 
-      {/* Mobile Layout */}
-      {isMobile && (
-        <div className="min-h-screen bg-gray-50 pb-20">
-          {children}
-          <MobileNav />
-        </div>
-      )}
-
-      {/* Desktop Layout */}
-      {viewMode === "desktop" && (
-        <div className="flex min-h-screen">
-          <Sidebar />
-          <main className="flex-1 bg-gray-50 overflow-y-auto">
-            {children}
-          </main>
-        </div>
-      )}
-
-      {/* Phone Preview */}
-      {isPhonePreview && (
-        <PhoneFrame>
-          <div className="min-h-full bg-gray-50 pb-20 relative">
+        {/* Mobile Layout */}
+        {isMobile && (
+          <div className="min-h-screen bg-gray-50 pb-20">
             {children}
             <MobileNav />
           </div>
-        </PhoneFrame>
-      )}
-    </ViewModeContext.Provider>
+        )}
+
+        {/* Desktop Layout */}
+        {viewMode === "desktop" && (
+          <div className="flex min-h-screen">
+            <Sidebar />
+            <main className="flex-1 bg-gray-50 overflow-y-auto">
+              {children}
+            </main>
+          </div>
+        )}
+
+        {/* Phone Preview */}
+        {isPhonePreview && (
+          <PhoneFrame>
+            <div className="min-h-full bg-gray-50 pb-20 relative">
+              {children}
+              <MobileNav />
+            </div>
+          </PhoneFrame>
+        )}
+      </ViewModeContext.Provider>
+    </LanguageProvider>
   );
 }

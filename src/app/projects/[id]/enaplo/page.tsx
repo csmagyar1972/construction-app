@@ -2,9 +2,10 @@
 
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
-import { projects } from "@/data/projects";
 import { enaploData, generateENaploText } from "@/data/enaplo";
 import { useViewMode } from "@/hooks/useViewMode";
+import { useLanguage } from "@/i18n/LanguageContext";
+import { getLocalizedData } from "@/data/localized";
 import {
   ArrowLeft,
   Copy,
@@ -35,8 +36,10 @@ export default function ENaploPage({
   const router = useRouter();
   const { isMobile, isPhonePreview } = useViewMode();
   const showMobileLayout = isMobile || isPhonePreview;
+  const { t, locale } = useLanguage();
+  const data = getLocalizedData(locale);
 
-  const project = projects.find((p) => p.id === id);
+  const project = data.projects.find((p) => p.id === id);
   const days = enaploData[id] || [];
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const [copied, setCopied] = useState(false);
@@ -47,7 +50,9 @@ export default function ENaploPage({
   if (!project || !day) {
     return (
       <div className="p-8 text-center text-gray-400">
-        Nincs elérhető e-napló adat ehhez a projekthez
+        {locale === "hu"
+          ? "Nincs elérhető e-napló adat ehhez a projekthez"
+          : "No e-log data available for this project"}
       </div>
     );
   }
@@ -77,7 +82,7 @@ export default function ENaploPage({
             <h1
               className={`font-bold text-gray-900 ${showMobileLayout ? "text-base" : "text-xl"}`}
             >
-              e-Napló Export
+              {t.eNaploExport}
             </h1>
             <p className="text-xs text-gray-500">{project.name}</p>
           </div>
@@ -88,13 +93,10 @@ export default function ENaploPage({
           <FileText size={18} className="text-blue-500 mt-0.5 flex-shrink-0" />
           <div>
             <p className="text-xs text-blue-700 font-medium">
-              Automatikus e-napló előkészítő
+              {t.enaploSubtitle}
             </p>
             <p className="text-xs text-blue-600 mt-0.5">
-              A BuildLog AI a napi bejegyzéseidből összeállítja az e-napló
-              bejegyzést. Másold ki és illeszd be az{" "}
-              <span className="font-semibold">e-epites.hu/e-naplo</span>{" "}
-              rendszerbe.
+              {t.enaploInfoBanner}
             </p>
           </div>
         </div>
@@ -141,7 +143,7 @@ export default function ENaploPage({
                 : "text-gray-500"
             }`}
           >
-            Strukturált nézet
+            {t.enaploStructured}
           </button>
           <button
             onClick={() => setShowPreview(true)}
@@ -151,7 +153,7 @@ export default function ENaploPage({
                 : "text-gray-500"
             }`}
           >
-            Másolható szöveg
+            {t.enaploadCopyable}
           </button>
         </div>
       </div>
@@ -171,21 +173,21 @@ export default function ENaploPage({
               {/* Weather */}
               <ENaploSection
                 icon={<CloudSun size={18} />}
-                title="Időjárási viszonyok"
+                title={t.enaploWeather}
                 color="#3B82F6"
               >
                 <div className="grid grid-cols-2 gap-2">
-                  <Field label="Hőmérséklet" value={day.weather.temperature} />
-                  <Field label="Időjárás" value={day.weather.conditions} />
-                  <Field label="Szél" value={day.weather.wind} />
-                  <Field label="Csapadék" value={day.weather.precipitation} />
+                  <Field label={t.enaploTemperature} value={day.weather.temperature} />
+                  <Field label={t.enaploConditions} value={day.weather.conditions} />
+                  <Field label={t.enaploWind} value={day.weather.wind} />
+                  <Field label={t.enaploPrecipitation} value={day.weather.precipitation} />
                 </div>
               </ENaploSection>
 
               {/* Crew */}
               <ENaploSection
                 icon={<Users size={18} />}
-                title={`Munkaerő / Létszám (${day.crewTotal} fő)`}
+                title={`${t.enaploCrew} (${day.crewTotal} ${t.persons})`}
                 color="#8B5CF6"
               >
                 <div className="space-y-1.5">
@@ -197,7 +199,7 @@ export default function ENaploPage({
                       <span className="text-gray-700">{c.trade}</span>
                       <div className="flex items-center gap-3">
                         <span className="font-semibold text-gray-900">
-                          {c.count} fő
+                          {c.count} {t.persons}
                         </span>
                         <span className="text-xs text-gray-400">
                           {c.hours}
@@ -206,8 +208,8 @@ export default function ENaploPage({
                     </div>
                   ))}
                   <div className="border-t border-gray-100 pt-1.5 flex justify-between text-sm font-bold">
-                    <span>Összesen</span>
-                    <span>{day.crewTotal} fő</span>
+                    <span>{t.enaploTotal}</span>
+                    <span>{day.crewTotal} {t.persons}</span>
                   </div>
                 </div>
               </ENaploSection>
@@ -215,7 +217,7 @@ export default function ENaploPage({
               {/* Work Description */}
               <ENaploSection
                 icon={<Hammer size={18} />}
-                title="Elvégzett munkák"
+                title={t.enaploWorkDone}
                 color="#F59E0B"
               >
                 <ul className="space-y-1.5">
@@ -234,7 +236,7 @@ export default function ENaploPage({
               {/* Materials Used */}
               <ENaploSection
                 icon={<Package size={18} />}
-                title="Felhasznált anyagok"
+                title={t.enaploMaterials}
                 color="#10B981"
               >
                 {day.materialsUsed.length > 0 ? (
@@ -252,7 +254,7 @@ export default function ENaploPage({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-400">Nincs bejegyzés.</p>
+                  <p className="text-sm text-gray-400">{t.enaploNoEntry}</p>
                 )}
               </ENaploSection>
 
@@ -260,7 +262,7 @@ export default function ENaploPage({
               {day.materialsDelivered.length > 0 && (
                 <ENaploSection
                   icon={<Package size={18} />}
-                  title="Anyagszállítások"
+                  title={t.enaploDeliveries}
                   color="#3B82F6"
                 >
                   {day.materialsDelivered.map((d, i) => (
@@ -282,7 +284,7 @@ export default function ENaploPage({
               {/* Equipment */}
               <ENaploSection
                 icon={<Wrench size={18} />}
-                title="Alkalmazott gépek"
+                title={t.enaploEquipment}
                 color="#6B7280"
               >
                 {day.equipment.length > 0 ? (
@@ -294,7 +296,7 @@ export default function ENaploPage({
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-sm text-gray-400">Nincs bejegyzés.</p>
+                  <p className="text-sm text-gray-400">{t.enaploNoEntry}</p>
                 )}
               </ENaploSection>
 
@@ -302,7 +304,7 @@ export default function ENaploPage({
               {day.qualityNotes.length > 0 && (
                 <ENaploSection
                   icon={<ClipboardCheck size={18} />}
-                  title="Minőségi észrevételek"
+                  title={t.enaploQuality}
                   color="#F59E0B"
                 >
                   {day.qualityNotes.map((q, i) => (
@@ -317,7 +319,7 @@ export default function ENaploPage({
               {day.defects.length > 0 && (
                 <ENaploSection
                   icon={<AlertTriangle size={18} />}
-                  title="Hibák, hiányosságok"
+                  title={t.enaploDefects}
                   color="#EF4444"
                 >
                   <ul className="space-y-1.5">
@@ -337,7 +339,7 @@ export default function ENaploPage({
               {day.otherNotes.length > 0 && (
                 <ENaploSection
                   icon={<MessageSquare size={18} />}
-                  title="Egyéb megjegyzések"
+                  title={t.enaploOtherNotes}
                   color="#6B7280"
                 >
                   <ul className="space-y-1">
@@ -353,16 +355,16 @@ export default function ENaploPage({
               {/* Signature area */}
               <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 text-center">
                 <p className="text-xs text-gray-400 uppercase font-medium mb-1">
-                  Bejegyzést készítette
+                  {t.enaploPreparedBy}
                 </p>
                 <p className="text-sm font-semibold text-gray-900">
                   Kovács Tamás
                 </p>
                 <p className="text-xs text-gray-500">
-                  Felelős műszaki vezető
+                  {locale === "hu" ? "Felelős műszaki vezető" : "Site manager"}
                 </p>
                 <p className="text-[10px] text-gray-400 mt-2">
-                  Generálta: BuildLog AI — automatikus e-napló előkészítő
+                  {t.enaploGeneratedBy}
                 </p>
               </div>
             </motion.div>
@@ -390,12 +392,12 @@ export default function ENaploPage({
                   {copied ? (
                     <>
                       <Check size={14} />
-                      Másolva!
+                      {t.enaploCopied}
                     </>
                   ) : (
                     <>
                       <Copy size={14} />
-                      Másolás
+                      {t.enaploCopyClipboard}
                     </>
                   )}
                 </button>
@@ -416,24 +418,24 @@ export default function ENaploPage({
           {copied ? (
             <>
               <Check size={18} />
-              Szöveg másolva a vágólapra!
+              {t.enaploCopied}
             </>
           ) : (
             <>
               <Copy size={18} />
-              Másolás a vágólapra — beillesztés az e-naplóba
+              {t.enaploCopyClipboard}
             </>
           )}
         </button>
 
         <button className="w-full py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors">
           <FileDown size={16} />
-          Letöltés PDF-ként
+          {t.enaploDownloadPdf}
         </button>
 
         <button className="w-full py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-600 flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors">
           <ExternalLink size={16} />
-          Megnyitás: e-epites.hu/e-naplo
+          {t.enaploOpenEepites}
         </button>
       </div>
     </div>

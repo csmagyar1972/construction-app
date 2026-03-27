@@ -2,13 +2,12 @@
 
 import { use } from "react";
 import { useRouter } from "next/navigation";
-import { entries } from "@/data/entries";
-import { entryDetails } from "@/data/entry-details";
-import { projects } from "@/data/projects";
 import { CATEGORY_CONFIG } from "@/data/types";
 import { CategoryBadge } from "@/components/app-ui/CategoryBadge";
 import { StatusBadge } from "@/components/app-ui/StatusBadge";
 import { useViewMode } from "@/hooks/useViewMode";
+import { useLanguage } from "@/i18n/LanguageContext";
+import { getLocalizedData } from "@/data/localized";
 import {
   ArrowLeft,
   MapPin,
@@ -33,22 +32,31 @@ export default function EntryDetailPage({
   const router = useRouter();
   const { isMobile, isPhonePreview } = useViewMode();
   const showMobileLayout = isMobile || isPhonePreview;
+  const { t, locale } = useLanguage();
+  const data = getLocalizedData(locale);
 
   // Try detailed version first, then find in entries
-  const detail = entryDetails[entryId];
-  const allProjectEntries = entries[id] || [];
+  const detail = data.entryDetails[entryId];
+  const allProjectEntries = data.entries[id] || [];
   const entry = detail || allProjectEntries.find((e) => e.id === entryId);
-  const project = projects.find((p) => p.id === id);
+  const project = data.projects.find((p) => p.id === id);
 
   if (!entry) {
     return (
       <div className="p-8 text-center text-gray-400">
-        Bejegyzés nem található
+        {t.entryNotFound}
       </div>
     );
   }
 
   const config = CATEGORY_CONFIG[entry.category];
+
+  const sourceLabel = (source: string) => {
+    if (source === "photo+voice") return locale === "hu" ? "Fotó + Hangfelvétel" : "Photo + Voice";
+    if (source === "photo") return locale === "hu" ? "Fotó" : "Photo";
+    if (source === "voice") return locale === "hu" ? "Hangfelvétel" : "Voice recording";
+    return locale === "hu" ? "Szöveges jegyzet" : "Text note";
+  };
 
   return (
     <motion.div
@@ -83,7 +91,7 @@ export default function EntryDetailPage({
           {entry.isUrgent && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
               <AlertCircle size={12} />
-              Sürgős!
+              {t.urgent}
             </span>
           )}
         </div>
@@ -122,19 +130,19 @@ export default function EntryDetailPage({
         <div className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-50">
           <DetailRow
             icon={<FileText size={16} />}
-            label="Projekt"
+            label={t.project}
             value={project?.name || ""}
           />
           {entry.location && (
             <DetailRow
               icon={<MapPin size={16} />}
-              label="Helyszín"
+              label={t.location}
               value={entry.location}
             />
           )}
           <DetailRow
             icon={<Calendar size={16} />}
-            label="Dátum"
+            label={t.date}
             value={`${entry.date} ${entry.time || ""}`}
           />
           {entry.source && (
@@ -146,78 +154,70 @@ export default function EntryDetailPage({
                   <Mic size={16} />
                 )
               }
-              label="Forrás"
-              value={
-                entry.source === "photo+voice"
-                  ? "Fotó + Hangfelvétel"
-                  : entry.source === "photo"
-                    ? "Fotó"
-                    : entry.source === "voice"
-                      ? "Hangfelvétel"
-                      : "Szöveges jegyzet"
-              }
+              label={t.source}
+              value={sourceLabel(entry.source)}
             />
           )}
           {entry.supplier && (
             <DetailRow
               icon={<User size={16} />}
-              label={entry.category === "invoice" ? "Szállító" : "Beszállító"}
+              label={t.supplier}
               value={entry.supplier}
             />
           )}
           {entry.invoiceNumber && (
             <DetailRow
               icon={<FileText size={16} />}
-              label="Számla szám"
+              label={t.invoiceNumber}
               value={entry.invoiceNumber}
             />
           )}
           {detail?.deliveryNumber && (
             <DetailRow
               icon={<FileText size={16} />}
-              label="Szállítólevél szám"
+              label={t.deliveryNoteNumber}
               value={detail.deliveryNumber}
             />
           )}
           {detail?.receiver && (
             <DetailRow
               icon={<User size={16} />}
-              label="Átvevő"
+              label={t.receiver}
               value={detail.receiver}
             />
           )}
           {entry.amount && (
             <DetailRow
               icon={<FileText size={16} />}
-              label="Összeg"
+              label={locale === "hu" ? "Összeg" : "Amount"}
               value={entry.amount}
             />
           )}
           {detail?.netAmount && (
             <DetailRow
               icon={<FileText size={16} />}
-              label="Nettó / ÁFA"
+              label={locale === "hu" ? "Nettó / ÁFA" : "Net / VAT"}
               value={`${detail.netAmount} + ${detail.vatAmount}`}
             />
           )}
           {detail?.paymentDue && (
             <DetailRow
               icon={<Calendar size={16} />}
-              label="Fizetési határidő"
+              label={locale === "hu" ? "Fizetési határidő" : "Payment due"}
               value={detail.paymentDue}
             />
           )}
           {detail?.responsible && (
             <DetailRow
               icon={<User size={16} />}
-              label="Felelős"
+              label={t.responsible}
               value={detail.responsible}
             />
           )}
           {detail?.priority && (
             <DetailRow
               icon={<AlertCircle size={16} />}
-              label="Prioritás"
+              label={t.priority}
               value={detail.priority}
             />
           )}
@@ -227,20 +227,20 @@ export default function EntryDetailPage({
         {entry.items && entry.items.length > 0 && (
           <div className="mt-5">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">
-              Tételek
+              {t.items}
             </h3>
             <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 text-xs text-gray-500 uppercase">
                     <th className="text-left px-4 py-2.5 font-medium">
-                      Termék
+                      {locale === "hu" ? "Termék" : "Product"}
                     </th>
                     <th className="text-right px-4 py-2.5 font-medium">
-                      Mennyiség
+                      {locale === "hu" ? "Mennyiség" : "Quantity"}
                     </th>
                     <th className="text-left px-4 py-2.5 font-medium">
-                      Egység
+                      {locale === "hu" ? "Egység" : "Unit"}
                     </th>
                   </tr>
                 </thead>
@@ -264,13 +264,13 @@ export default function EntryDetailPage({
         {entry.reportData && (
           <div className="mt-5">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">
-              Riport részletei
+              {t.reportDetails}
             </h3>
             <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-3">
               {entry.reportData.crew && (
                 <div>
                   <p className="text-xs text-gray-400 uppercase font-medium mb-1">
-                    Létszám
+                    {t.crew}
                   </p>
                   <p className="text-sm text-gray-900">
                     {entry.reportData.crew}
@@ -281,7 +281,7 @@ export default function EntryDetailPage({
                 entry.reportData.completed.length > 0 && (
                   <div>
                     <p className="text-xs text-gray-400 uppercase font-medium mb-1">
-                      Elkészült
+                      {t.completed}
                     </p>
                     {entry.reportData.completed.map((item, i) => (
                       <p key={i} className="text-sm text-green-600">
@@ -294,7 +294,7 @@ export default function EntryDetailPage({
                 entry.reportData.inProgress.length > 0 && (
                   <div>
                     <p className="text-xs text-gray-400 uppercase font-medium mb-1">
-                      Folyamatban
+                      {t.inProgress}
                     </p>
                     {entry.reportData.inProgress.map((item, i) => (
                       <p key={i} className="text-sm text-amber-600">
@@ -307,7 +307,7 @@ export default function EntryDetailPage({
                 entry.reportData.notes.length > 0 && (
                   <div>
                     <p className="text-xs text-gray-400 uppercase font-medium mb-1">
-                      Megjegyzések
+                      {t.notes}
                     </p>
                     {entry.reportData.notes.map((item, i) => (
                       <p key={i} className="text-sm text-gray-600">
@@ -324,7 +324,7 @@ export default function EntryDetailPage({
         {entry.status && (
           <div className="mt-5">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">
-              Státusz
+              {t.status}
             </h3>
             <StatusBadge status={entry.status} interactive />
           </div>
@@ -334,7 +334,7 @@ export default function EntryDetailPage({
         {(entry.source === "voice" || entry.source === "photo+voice") && (
           <div className="mt-5">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">
-              Eredeti hangfelvétel
+              {t.originalVoiceRecording}
             </h3>
             <div className="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-4">
               <button className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
@@ -353,7 +353,7 @@ export default function EntryDetailPage({
         {/* Share Button */}
         <button className="mt-6 w-full py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors">
           <Share2 size={16} />
-          Megosztás (PDF / Email)
+          {t.shareExport}
         </button>
       </div>
     </motion.div>

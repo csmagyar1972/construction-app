@@ -1,7 +1,8 @@
 "use client";
 
-import { FILTER_TABS, EntryItem } from "@/data/types";
+import { EntryItem } from "@/data/types";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 export function FilterTabs({
   activeFilter,
@@ -12,6 +13,18 @@ export function FilterTabs({
   onFilterChange: (filter: string) => void;
   entries: EntryItem[];
 }) {
+  const { t } = useLanguage();
+
+  const tabs = [
+    { key: "all", label: t.filterAll },
+    { key: "defect", label: t.filterDefects },
+    { key: "delivery", label: t.filterDeliveries },
+    { key: "invoice", label: t.filterInvoices },
+    { key: "material", label: t.filterMaterials },
+    { key: "report", label: t.filterReports },
+    { key: "note", label: t.filterNotes },
+  ];
+
   const getCount = (key: string) => {
     if (key === "all") return entries.length;
     return entries.filter((e) => e.category === key).length;
@@ -19,7 +32,7 @@ export function FilterTabs({
 
   return (
     <div className="flex gap-1 overflow-x-auto pb-2 scrollbar-hide px-1">
-      {FILTER_TABS.map((tab) => {
+      {tabs.map((tab) => {
         const count = getCount(tab.key);
         const isActive = activeFilter === tab.key;
         return (
